@@ -1,0 +1,242 @@
+-- Modern UI Library by ChatGPT
+-- Inspirado na KavoUI, mas refeito do zero e mais moderno
+
+local ModernUI = {}
+ModernUI.__index = ModernUI
+
+-- Services
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+-- Função para arrastar UI
+local function makeDraggable(frame, dragHandle)
+    local dragging, dragInput, startPos, startInput
+    dragHandle = dragHandle or frame
+
+    dragHandle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            startPos = frame.Position
+            startInput = input
+        end
+    end)
+
+    dragHandle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - startInput.Position
+            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                       startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    dragHandle.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+end
+
+-- Tema padrão
+ModernUI.Theme = {
+    SchemeColor = Color3.fromRGB(0,255,255),
+    Background = Color3.fromRGB(20,20,20),
+    Header = Color3.fromRGB(30,30,30),
+    TextColor = Color3.fromRGB(255,255,255),
+    ElementColor = Color3.fromRGB(25,25,25)
+}
+
+-- Criar biblioteca
+function ModernUI:CreateLib(title, theme)
+    theme = theme or ModernUI.Theme
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "ModernUI"
+    ScreenGui.Parent = game.CoreGui
+
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Size = UDim2.new(0, 600, 0, 400)
+    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    MainFrame.BackgroundColor3 = theme.Background
+    MainFrame.BorderSizePixel = 0
+    MainFrame.Parent = ScreenGui
+
+    local UICorner = Instance.new("UICorner", MainFrame)
+    UICorner.CornerRadius = UDim.new(0, 12)
+
+    local TitleBar = Instance.new("TextLabel")
+    TitleBar.Size = UDim2.new(1, 0, 0, 40)
+    TitleBar.BackgroundColor3 = theme.Header
+    TitleBar.TextColor3 = theme.TextColor
+    TitleBar.Text = title or "Modern UI"
+    TitleBar.Font = Enum.Font.GothamBold
+    TitleBar.TextSize = 18
+    TitleBar.Parent = MainFrame
+
+    makeDraggable(MainFrame, TitleBar)
+
+    local Tabs = Instance.new("Frame", MainFrame)
+    Tabs.Size = UDim2.new(0, 120, 1, -40)
+    Tabs.Position = UDim2.new(0,0,0,40)
+    Tabs.BackgroundColor3 = theme.ElementColor
+
+    local Container = Instance.new("Frame", MainFrame)
+    Container.Size = UDim2.new(1, -120, 1, -40)
+    Container.Position = UDim2.new(0,120,0,40)
+    Container.BackgroundTransparency = 1
+
+    local TabHolder = {}
+    function TabHolder:NewTab(tabName)
+        local Button = Instance.new("TextButton")
+        Button.Size = UDim2.new(1,0,0,30)
+        Button.Text = tabName
+        Button.BackgroundColor3 = theme.ElementColor
+        Button.TextColor3 = theme.TextColor
+        Button.Font = Enum.Font.Gotham
+        Button.TextSize = 14
+        Button.Parent = Tabs
+
+        local Page = Instance.new("ScrollingFrame", Container)
+        Page.Size = UDim2.new(1,0,1,0)
+        Page.CanvasSize = UDim2.new(0,0,0,0)
+        Page.ScrollBarThickness = 6
+        Page.Visible = false
+
+        local UIList = Instance.new("UIListLayout", Page)
+        UIList.Padding = UDim.new(0,6)
+        UIList.SortOrder = Enum.SortOrder.LayoutOrder
+
+        Button.MouseButton1Click:Connect(function()
+            for _,v in pairs(Container:GetChildren()) do
+                if v:IsA("ScrollingFrame") then
+                    v.Visible = false
+                end
+            end
+            Page.Visible = true
+        end)
+
+        local SectionHolder = {}
+        function SectionHolder:NewSection(name)
+            local SectionFrame = Instance.new("Frame")
+            SectionFrame.Size = UDim2.new(1,-10,0,40)
+            SectionFrame.BackgroundColor3 = theme.Background
+            SectionFrame.Parent = Page
+
+            local Label = Instance.new("TextLabel", SectionFrame)
+            Label.Size = UDim2.new(1, -10, 0, 20)
+            Label.Position = UDim2.new(0,5,0,5)
+            Label.BackgroundTransparency = 1
+            Label.Text = name
+            Label.Font = Enum.Font.GothamBold
+            Label.TextSize = 14
+            Label.TextColor3 = theme.SchemeColor
+
+            local UIList2 = Instance.new("UIListLayout", SectionFrame)
+            UIList2.Padding = UDim.new(0,4)
+            UIList2.SortOrder = Enum.SortOrder.LayoutOrder
+
+            local Elements = {}
+
+            -- Label
+            function Elements:NewLabel(text)
+                local lbl = Instance.new("TextLabel")
+                lbl.Size = UDim2.new(1, -10, 0, 20)
+                lbl.BackgroundTransparency = 1
+                lbl.Text = text
+                lbl.Font = Enum.Font.Gotham
+                lbl.TextSize = 13
+                lbl.TextColor3 = theme.TextColor
+                lbl.Parent = SectionFrame
+                return lbl
+            end
+
+            -- Button
+            function Elements:NewButton(text, info, callback)
+                local btn = Instance.new("TextButton")
+                btn.Size = UDim2.new(1, -10, 0, 30)
+                btn.Text = text
+                btn.BackgroundColor3 = theme.ElementColor
+                btn.TextColor3 = theme.TextColor
+                btn.Font = Enum.Font.Gotham
+                btn.TextSize = 13
+                btn.Parent = SectionFrame
+                btn.MouseButton1Click:Connect(callback)
+                return btn
+            end
+
+            -- Toggle
+            function Elements:NewToggle(text, info, callback)
+                local toggle = Instance.new("TextButton")
+                toggle.Size = UDim2.new(1, -10, 0, 30)
+                toggle.Text = text.." [OFF]"
+                toggle.BackgroundColor3 = theme.ElementColor
+                toggle.TextColor3 = theme.TextColor
+                toggle.Font = Enum.Font.Gotham
+                toggle.TextSize = 13
+                toggle.Parent = SectionFrame
+
+                local state = false
+                toggle.MouseButton1Click:Connect(function()
+                    state = not state
+                    toggle.Text = text .. (state and " [ON]" or " [OFF]")
+                    callback(state)
+                end)
+
+                return toggle
+            end
+
+            -- Slider
+            function Elements:NewSlider(text, info, max, min, callback)
+                local slider = Instance.new("TextButton")
+                slider.Size = UDim2.new(1, -10, 0, 30)
+                slider.Text = text.." ("..min..")"
+                slider.BackgroundColor3 = theme.ElementColor
+                slider.TextColor3 = theme.TextColor
+                slider.Font = Enum.Font.Gotham
+                slider.TextSize = 13
+                slider.Parent = SectionFrame
+
+                local value = min
+                slider.MouseButton1Click:Connect(function()
+                    value = value + 1
+                    if value > max then value = min end
+                    slider.Text = text.." ("..value..")"
+                    callback(value)
+                end)
+
+                return slider
+            end
+
+            -- TextBox
+            function Elements:NewTextBox(text, info, callback)
+                local box = Instance.new("TextBox")
+                box.Size = UDim2.new(1, -10, 0, 30)
+                box.PlaceholderText = text
+                box.BackgroundColor3 = theme.ElementColor
+                box.TextColor3 = theme.TextColor
+                box.Font = Enum.Font.Gotham
+                box.TextSize = 13
+                box.Parent = SectionFrame
+
+                box.FocusLost:Connect(function()
+                    callback(box.Text)
+                end)
+
+                return box
+            end
+
+            return Elements
+        end
+
+        return SectionHolder
+    end
+
+    return TabHolder
+end
+
+return ModernUI
