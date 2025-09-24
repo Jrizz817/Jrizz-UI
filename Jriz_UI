@@ -257,12 +257,12 @@ function ModernUI:CreateLib(title, width, height, theme)
         function SectionHolder:NewSection(name)  
             local SectionFrame = Instance.new("Frame")  
             SectionFrame.Size = UDim2.new(1, -10, 0, 0)  
-            SectionFrame.BackgroundColor3 = theme.ElementColor -- Alterado para ElementColor para evitar cinza
+            SectionFrame.BackgroundColor3 = theme.ElementColor  
             SectionFrame.Parent = Page  
             SectionFrame.BorderSizePixel = 0  
             SectionFrame.AutomaticSize = Enum.AutomaticSize.Y  
-            SectionFrame.Transparency = 1  
-            createTween(SectionFrame, {Transparency = 0}, 0.4, Enum.EasingStyle.Sine)  
+            SectionFrame.BackgroundTransparency = 0 -- Começa opaco
+            -- createTween(SectionFrame, {Transparency = 0}, 0.4, Enum.EasingStyle.Sine) removido para teste
 
             local SectionStroke = Instance.new("UIStroke", SectionFrame)  
             SectionStroke.Color = theme.BorderColor  
@@ -402,8 +402,8 @@ function ModernUI:CreateLib(title, width, height, theme)
                 sliderFrame.Size = UDim2.new(1, 0, 0, 40)  
                 sliderFrame.BackgroundTransparency = 1  
                 sliderFrame.Parent = SectionFrame  
-                sliderFrame.Transparency = 1  
-                createTween(sliderFrame, {Transparency = 0}, 0.3)  
+                sliderFrame.BackgroundTransparency = 0 -- Começa opaco
+                -- createTween(sliderFrame, {Transparency = 0}, 0.3) removido para teste
 
                 local sliderLabel = Instance.new("TextLabel")  
                 sliderLabel.Size = UDim2.new(1, 0, 0, 20)  
@@ -417,9 +417,10 @@ function ModernUI:CreateLib(title, width, height, theme)
                 local sliderBar = Instance.new("Frame")  
                 sliderBar.Size = UDim2.new(1, 0, 0, 6)  
                 sliderBar.Position = UDim2.new(0, 0, 0, 25)  
-                sliderBar.BackgroundColor3 = theme.ElementColor -- Fundo do slider ajustado
+                sliderBar.BackgroundColor3 = theme.ElementColor  
                 sliderBar.BorderSizePixel = 0  
                 sliderBar.Parent = sliderFrame  
+                sliderBar.BackgroundTransparency = 0 -- Garante que a cor seja visível
 
                 local SliderBarStroke = Instance.new("UIStroke", sliderBar)  
                 SliderBarStroke.Color = theme.BorderColor  
@@ -434,6 +435,7 @@ function ModernUI:CreateLib(title, width, height, theme)
                 fill.BackgroundColor3 = theme.SchemeColor  
                 fill.BorderSizePixel = 0  
                 fill.Parent = sliderBar  
+                fill.BackgroundTransparency = 0 -- Garante que o preenchimento seja visível
 
                 local fillCorner = Instance.new("UICorner", fill)  
                 fillCorner.CornerRadius = UDim.new(0, 3)  
