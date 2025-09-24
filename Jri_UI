@@ -51,22 +51,61 @@ local function createTween(instance, properties, duration, easingStyle, easingDi
     return tween
 end
 
--- Tema padrão atualizado
-ModernUI.Theme = {
-    SchemeColor = Color3.fromRGB(0, 255, 255),
-    Background = Color3.fromRGB(20, 20, 20),
-    Header = Color3.fromRGB(30, 30, 30),
-    TextColor = Color3.fromRGB(255, 255, 255),
-    ElementColor = Color3.fromRGB(25, 25, 25),
-    AccentColor = Color3.fromRGB(0, 200, 200),
-    HoverColor = Color3.fromRGB(40, 40, 40),
-    BorderColor = Color3.fromRGB(50, 50, 50),
-    CornerRadius = UDim.new(0, 8)
+-- Temas disponíveis
+ModernUI.Themes = {
+    Dark = {
+        SchemeColor = Color3.fromRGB(0, 255, 255),
+        Background = Color3.fromRGB(20, 20, 20),
+        Header = Color3.fromRGB(30, 30, 30),
+        TextColor = Color3.fromRGB(255, 255, 255),
+        ElementColor = Color3.fromRGB(25, 25, 25),
+        AccentColor = Color3.fromRGB(0, 200, 200),
+        HoverColor = Color3.fromRGB(40, 40, 40),
+        BorderColor = Color3.fromRGB(50, 50, 50),
+        CornerRadius = UDim.new(0, 8)
+    },
+    Light = {
+        SchemeColor = Color3.fromRGB(0, 100, 255),
+        Background = Color3.fromRGB(240, 240, 240),
+        Header = Color3.fromRGB(220, 220, 220),
+        TextColor = Color3.fromRGB(0, 0, 0),
+        ElementColor = Color3.fromRGB(255, 255, 255),
+        AccentColor = Color3.fromRGB(0, 150, 255),
+        HoverColor = Color3.fromRGB(230, 230, 230),
+        BorderColor = Color3.fromRGB(200, 200, 200),
+        CornerRadius = UDim.new(0, 8)
+    },
+    Blue = {
+        SchemeColor = Color3.fromRGB(0, 0, 255),
+        Background = Color3.fromRGB(15, 15, 30),
+        Header = Color3.fromRGB(25, 25, 50),
+        TextColor = Color3.fromRGB(255, 255, 255),
+        ElementColor = Color3.fromRGB(20, 20, 40),
+        AccentColor = Color3.fromRGB(0, 100, 255),
+        HoverColor = Color3.fromRGB(35, 35, 60),
+        BorderColor = Color3.fromRGB(50, 50, 80),
+        CornerRadius = UDim.new(0, 8)
+    },
+    Green = {
+        SchemeColor = Color3.fromRGB(0, 255, 0),
+        Background = Color3.fromRGB(20, 25, 20),
+        Header = Color3.fromRGB(30, 40, 30),
+        TextColor = Color3.fromRGB(255, 255, 255),
+        ElementColor = Color3.fromRGB(25, 30, 25),
+        AccentColor = Color3.fromRGB(100, 200, 100),
+        HoverColor = Color3.fromRGB(40, 50, 40),
+        BorderColor = Color3.fromRGB(60, 70, 60),
+        CornerRadius = UDim.new(0, 8)
+    }
 }
 
 -- Criar biblioteca
-function ModernUI:CreateLib(title, theme)
-    theme = theme or ModernUI.Theme
+function ModernUI:CreateLib(title, width, height, theme)
+    if type(theme) == "string" then
+        theme = ModernUI.Themes[theme] or ModernUI.Themes.Dark
+    else
+        theme = theme or ModernUI.Themes.Dark
+    end
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "ModernUI"
@@ -74,15 +113,19 @@ function ModernUI:CreateLib(title, theme)
     ScreenGui.ResetOnSpawn = false
 
     local MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(0, 600, 0, 400)
-    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
+    MainFrame.Size = UDim2.new(0, width or 600, 0, height or 400)
+    MainFrame.Position = UDim2.new(0.5, -(width or 600)/2, 0.5, -(height or 400)/2)
     MainFrame.BackgroundColor3 = theme.Background
     MainFrame.BorderSizePixel = 0
     MainFrame.Parent = ScreenGui
     MainFrame.ClipsDescendants = true
+    MainFrame.BackgroundTransparency = 1  -- Para animação de fade in
 
     local UICorner = Instance.new("UICorner", MainFrame)
     UICorner.CornerRadius = theme.CornerRadius
+
+    -- Animação de fade in para a UI principal
+    createTween(MainFrame, {BackgroundTransparency = 0}, 0.5, Enum.EasingStyle.Sine)
 
     local TitleBar = Instance.new("TextLabel")
     TitleBar.Size = UDim2.new(1, 0, 0, 40)
@@ -146,6 +189,10 @@ function ModernUI:CreateLib(title, theme)
         UIList.Padding = UDim.new(0, 6)
         UIList.SortOrder = Enum.SortOrder.LayoutOrder
 
+        UIList:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            Page.CanvasSize = UDim2.new(0, 0, 0, UIList.AbsoluteContentSize.Y + 10)
+        end)
+
         Button.MouseButton1Click:Connect(function()
             for _, v in pairs(Container:GetChildren()) do
                 if v:IsA("ScrollingFrame") then
@@ -169,11 +216,12 @@ function ModernUI:CreateLib(title, theme)
         local SectionHolder = {}
         function SectionHolder:NewSection(name)
             local SectionFrame = Instance.new("Frame")
-            SectionFrame.Size = UDim2.new(1, -10, 0, 40)
+            SectionFrame.Size = UDim2.new(1, -10, 0, 0)  -- Altura auto
             SectionFrame.BackgroundColor3 = theme.Background
             SectionFrame.Parent = Page
             SectionFrame.BorderColor3 = theme.BorderColor
             SectionFrame.BorderSizePixel = 1
+            SectionFrame.AutomaticSize = Enum.AutomaticSize.Y
 
             local SectionCorner = Instance.new("UICorner", SectionFrame)
             SectionCorner.CornerRadius = theme.CornerRadius
@@ -187,15 +235,22 @@ function ModernUI:CreateLib(title, theme)
             Label.TextSize = 14
             Label.TextColor3 = theme.SchemeColor
 
+            local UIPadding = Instance.new("UIPadding", SectionFrame)
+            UIPadding.PaddingTop = UDim.new(0, 5)
+            UIPadding.PaddingBottom = UDim.new(0, 5)
+            UIPadding.PaddingLeft = UDim.new(0, 5)
+            UIPadding.PaddingRight = UDim.new(0, 5)
+
             local UIList2 = Instance.new("UIListLayout", SectionFrame)
             UIList2.Padding = UDim.new(0, 4)
             UIList2.SortOrder = Enum.SortOrder.LayoutOrder
 
             local Elements = {}
 
+            -- Label
             function Elements:NewLabel(text)
                 local lbl = Instance.new("TextLabel")
-                lbl.Size = UDim2.new(1, -10, 0, 20)
+                lbl.Size = UDim2.new(1, 0, 0, 20)
                 lbl.BackgroundTransparency = 1
                 lbl.Text = text
                 lbl.Font = Enum.Font.Gotham
@@ -205,9 +260,10 @@ function ModernUI:CreateLib(title, theme)
                 return lbl
             end
 
+            -- Button
             function Elements:NewButton(text, info, callback)
                 local btn = Instance.new("TextButton")
-                btn.Size = UDim2.new(1, -10, 0, 30)
+                btn.Size = UDim2.new(1, 0, 0, 30)
                 btn.Text = text
                 btn.BackgroundColor3 = theme.ElementColor
                 btn.TextColor3 = theme.TextColor
@@ -238,9 +294,10 @@ function ModernUI:CreateLib(title, theme)
                 return btn
             end
 
+            -- Toggle
             function Elements:NewToggle(text, info, callback)
                 local toggle = Instance.new("TextButton")
-                toggle.Size = UDim2.new(1, -10, 0, 30)
+                toggle.Size = UDim2.new(1, 0, 0, 30)
                 toggle.Text = text.." [OFF]"
                 toggle.BackgroundColor3 = theme.ElementColor
                 toggle.TextColor3 = theme.TextColor
@@ -262,56 +319,97 @@ function ModernUI:CreateLib(title, theme)
                 end)
 
                 toggle.MouseEnter:Connect(function()
-                    createTween(toggle, {BackgroundColor3 = state and theme.SchemeColor or theme.HoverColor}, 0.15)
+                    if not state then
+                        createTween(toggle, {BackgroundColor3 = theme.HoverColor}, 0.15)
+                    end
                 end)
 
                 toggle.MouseLeave:Connect(function()
-                    createTween(toggle, {BackgroundColor3 = state and theme.SchemeColor or theme.ElementColor}, 0.15)
+                    if not state then
+                        createTween(toggle, {BackgroundColor3 = theme.ElementColor}, 0.15)
+                    end
                 end)
 
                 return toggle
             end
 
-            function Elements:NewSlider(text, info, max, min, callback)
-                local slider = Instance.new("TextButton")
-                slider.Size = UDim2.new(1, -10, 0, 30)
-                slider.Text = text.." ("..min..")"
-                slider.BackgroundColor3 = theme.ElementColor
-                slider.TextColor3 = theme.TextColor
-                slider.Font = Enum.Font.Gotham
-                slider.TextSize = 13
-                slider.Parent = SectionFrame
-                slider.BorderColor3 = theme.BorderColor
-                slider.BorderSizePixel = 1
+            -- Slider
+            function Elements:NewSlider(text, info, min, max, default, callback)
+                local sliderFrame = Instance.new("Frame")
+                sliderFrame.Size = UDim2.new(1, 0, 0, 40)
+                sliderFrame.BackgroundTransparency = 1
+                sliderFrame.Parent = SectionFrame
 
-                local SliderCorner = Instance.new("UICorner", slider)
-                SliderCorner.CornerRadius = theme.CornerRadius
+                local sliderLabel = Instance.new("TextLabel")
+                sliderLabel.Size = UDim2.new(1, 0, 0, 20)
+                sliderLabel.BackgroundTransparency = 1
+                sliderLabel.Text = text .. " (" .. (default or min) .. ")"
+                sliderLabel.Font = Enum.Font.Gotham
+                sliderLabel.TextSize = 13
+                sliderLabel.TextColor3 = theme.TextColor
+                sliderLabel.Parent = sliderFrame
 
-                local value = min
-                slider.MouseButton1Click:Connect(function()
-                    value = value + 1
-                    if value > max then value = min end
-                    slider.Text = text.." ("..value..")"
-                    createTween(slider, {BackgroundColor3 = theme.AccentColor}, 0.2)
+                local sliderBar = Instance.new("Frame")
+                sliderBar.Size = UDim2.new(1, 0, 0, 6)
+                sliderBar.Position = UDim2.new(0, 0, 0, 25)
+                sliderBar.BackgroundColor3 = theme.ElementColor
+                sliderBar.BorderColor3 = theme.BorderColor
+                sliderBar.BorderSizePixel = 1
+                sliderBar.Parent = sliderFrame
+
+                local sliderBarCorner = Instance.new("UICorner", sliderBar)
+                sliderBarCorner.CornerRadius = UDim.new(0, 3)
+
+                local fill = Instance.new("Frame")
+                fill.Size = UDim2.new(0, 0, 1, 0)
+                fill.BackgroundColor3 = theme.SchemeColor
+                fill.BorderSizePixel = 0
+                fill.Parent = sliderBar
+
+                local fillCorner = Instance.new("UICorner", fill)
+                fillCorner.CornerRadius = UDim.new(0, 3)
+
+                local value = default or min
+                local dragging = false
+
+                local function updateValue(input)
+                    local size = math.clamp((input.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
+                    createTween(fill, {Size = UDim2.new(size, 0, 1, 0)}, 0.1)
+                    value = math.floor(min + (max - min) * size)
+                    sliderLabel.Text = text .. " (" .. value .. ")"
                     callback(value)
-                    wait(0.2)
-                    createTween(slider, {BackgroundColor3 = theme.ElementColor}, 0.2)
+                end
+
+                sliderBar.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = true
+                        updateValue(input)
+                    end
                 end)
 
-                slider.MouseEnter:Connect(function()
-                    createTween(slider, {BackgroundColor3 = theme.HoverColor}, 0.15)
+                sliderBar.InputEnded:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                        dragging = false
+                    end
                 end)
 
-                slider.MouseLeave:Connect(function()
-                    createTween(slider, {BackgroundColor3 = theme.ElementColor}, 0.15)
+                UserInputService.InputChanged:Connect(function(input)
+                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                        updateValue(input)
+                    end
                 end)
 
-                return slider
+                -- Set default
+                local defaultSize = (value - min) / (max - min)
+                fill.Size = UDim2.new(defaultSize, 0, 1, 0)
+
+                return sliderFrame
             end
 
+            -- TextBox
             function Elements:NewTextBox(text, info, callback)
                 local box = Instance.new("TextBox")
-                box.Size = UDim2.new(1, -10, 0, 30)
+                box.Size = UDim2.new(1, 0, 0, 30)
                 box.PlaceholderText = text
                 box.BackgroundColor3 = theme.ElementColor
                 box.TextColor3 = theme.TextColor
@@ -334,6 +432,112 @@ function ModernUI:CreateLib(title, theme)
                 end)
 
                 return box
+            end
+
+            -- Dropdown
+            function Elements:NewDropdown(text, options, callback)
+                local dropdown = Instance.new("TextButton")
+                dropdown.Size = UDim2.new(1, 0, 0, 30)
+                dropdown.Text = text .. " (Select)"
+                dropdown.BackgroundColor3 = theme.ElementColor
+                dropdown.TextColor3 = theme.TextColor
+                dropdown.Font = Enum.Font.Gotham
+                dropdown.TextSize = 13
+                dropdown.Parent = SectionFrame
+                dropdown.BorderColor3 = theme.BorderColor
+                dropdown.BorderSizePixel = 1
+
+                local DropdownCorner = Instance.new("UICorner", dropdown)
+                DropdownCorner.CornerRadius = theme.CornerRadius
+
+                local dropFrame = Instance.new("Frame")
+                dropFrame.Size = UDim2.new(1, 0, 0, 0)
+                dropFrame.Position = UDim2.new(0, 0, 1, 0)
+                dropFrame.BackgroundColor3 = theme.Background
+                dropFrame.BorderColor3 = theme.BorderColor
+                dropFrame.BorderSizePixel = 1
+                dropFrame.Visible = false
+                dropFrame.ClipsDescendants = true
+                dropFrame.Parent = dropdown
+
+                local DropCorner = Instance.new("UICorner", dropFrame)
+                DropCorner.CornerRadius = theme.CornerRadius
+
+                local dropList = Instance.new("UIListLayout", dropFrame)
+                dropList.Padding = UDim.new(0, 2)
+                dropList.SortOrder = Enum.SortOrder.LayoutOrder
+
+                local open = false
+
+                for _, option in ipairs(options) do
+                    local optBtn = Instance.new("TextButton")
+                    optBtn.Size = UDim2.new(1, 0, 0, 25)
+                    optBtn.Text = option
+                    optBtn.BackgroundColor3 = theme.ElementColor
+                    optBtn.TextColor3 = theme.TextColor
+                    optBtn.Font = Enum.Font.Gotham
+                    optBtn.TextSize = 12
+                    optBtn.Parent = dropFrame
+                    optBtn.BorderSizePixel = 0
+
+                    local OptCorner = Instance.new("UICorner", optBtn)
+                    OptCorner.CornerRadius = theme.CornerRadius
+
+                    optBtn.MouseButton1Click:Connect(function()
+                        dropdown.Text = text .. " (" .. option .. ")"
+                        callback(option)
+                        open = false
+                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
+                        wait(0.2)
+                        dropFrame.Visible = false
+                    end)
+
+                    optBtn.MouseEnter:Connect(function()
+                        createTween(optBtn, {BackgroundColor3 = theme.HoverColor}, 0.15)
+                    end)
+
+                    optBtn.MouseLeave:Connect(function()
+                        createTween(optBtn, {BackgroundColor3 = theme.ElementColor}, 0.15)
+                    end)
+                end
+
+                dropdown.MouseButton1Click:Connect(function()
+                    open = not open
+                    if open then
+                        dropFrame.Visible = true
+                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, #options * 25 + (#options - 1) * 2)}, 0.2)
+                    else
+                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
+                        wait(0.2)
+                        dropFrame.Visible = false
+                    end
+                end)
+
+                dropdown.MouseEnter:Connect(function()
+                    createTween(dropdown, {BackgroundColor3 = theme.HoverColor}, 0.15)
+                end)
+
+                dropdown.MouseLeave:Connect(function()
+                    createTween(dropdown, {BackgroundColor3 = theme.ElementColor}, 0.15)
+                end)
+
+                -- Fechar dropdown ao clicar fora
+                local function closeDropdown()
+                    if open then
+                        open = false
+                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
+                        wait(0.2)
+                        dropFrame.Visible = false
+                    end
+                end
+
+                UserInputService.InputBegan:Connect(function(input)
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 and not dropdown:IsMouseOver() and not dropFrame:IsMouseOver() then
+                        closeDropdown()
+                    end
+                end)
+
+                return dropdown
             end
 
             return Elements
