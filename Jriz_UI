@@ -582,15 +582,7 @@ function ModernUI:CreateLib(title, width, height, theme)
                     end  
                 end)  
 
-                dropdown.MouseEnter:Connect(function()  
-                    createTween(dropdown, {BackgroundColor3 = theme.HoverColor}, 0.15)  
-                end)  
-
-                dropdown.MouseLeave:Connect(function()  
-                    createTween(dropdown, {BackgroundColor3 = theme.ElementColor}, 0.15)  
-                end)  
-
-                local function closeDropdown()  
+                local function closeDropdown()
                     if open then  
                         open = false  
                         createTween(dropFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, Enum.EasingStyle.Sine)  
@@ -599,9 +591,20 @@ function ModernUI:CreateLib(title, width, height, theme)
                     end  
                 end  
 
-                UserInputService.InputBegan:Connect(function(input)  
+                UserInputService.InputBegan:Connect(function(input)
                     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then  
-                        if not (dropdown:IsMouseOver() or dropFrame:IsMouseOver()) then  
+                        local mousePosition = UserInputService:GetMouseLocation()
+                        local dropdownPosition = dropdown.AbsolutePosition
+                        local dropdownSize = dropdown.AbsoluteSize
+                        local dropFramePosition = dropFrame.AbsolutePosition
+                        local dropFrameSize = dropFrame.AbsoluteSize
+
+                        local isOverDropdown = mousePosition.X >= dropdownPosition.X and mousePosition.X <= dropdownPosition.X + dropdownSize.X and
+                                            mousePosition.Y >= dropdownPosition.Y and mousePosition.Y <= dropdownPosition.Y + dropdownSize.Y
+                        local isOverDropFrame = mousePosition.X >= dropFramePosition.X and mousePosition.X <= dropFramePosition.X + dropFrameSize.X and
+                                              mousePosition.Y >= dropFramePosition.Y and mousePosition.Y <= dropFramePosition.Y + dropFrameSize.Y
+
+                        if not isOverDropdown and not isOverDropFrame then  
                             closeDropdown()  
                         end  
                     end  
