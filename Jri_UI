@@ -5,35 +5,36 @@ ModernUI.__index = ModernUI
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 
--- Função para arrastar UI
+-- Função para arrastar UI (compatível com mobile)
 local function makeDraggable(frame, dragHandle)
-    local dragging, dragInput, startPos, startInput
+    local dragging = false
+    local dragInput, startPos, startInput
     dragHandle = dragHandle or frame
 
     dragHandle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             startPos = frame.Position
-            startInput = input
+            startInput = input.Position
         end
     end)
 
     dragHandle.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
             dragInput = input
         end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
-            local delta = input.Position - startInput.Position
+            local delta = input.Position - startInput
             frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
                                        startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
     end)
 
     dragHandle.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
         end
     end)
@@ -62,6 +63,9 @@ ModernUI.Themes = {
         AccentColor = Color3.fromRGB(0, 200, 200),
         HoverColor = Color3.fromRGB(40, 40, 40),
         BorderColor = Color3.fromRGB(50, 50, 50),
+        ShadowColor = Color3.fromRGB(0, 0, 0),
+        GradientColor1 = Color3.fromRGB(30, 30, 30),
+        GradientColor2 = Color3.fromRGB(20, 20, 20),
         CornerRadius = UDim.new(0, 8)
     },
     Light = {
@@ -73,6 +77,9 @@ ModernUI.Themes = {
         AccentColor = Color3.fromRGB(0, 150, 255),
         HoverColor = Color3.fromRGB(230, 230, 230),
         BorderColor = Color3.fromRGB(200, 200, 200),
+        ShadowColor = Color3.fromRGB(150, 150, 150),
+        GradientColor1 = Color3.fromRGB(250, 250, 250),
+        GradientColor2 = Color3.fromRGB(240, 240, 240),
         CornerRadius = UDim.new(0, 8)
     },
     Blue = {
@@ -84,6 +91,9 @@ ModernUI.Themes = {
         AccentColor = Color3.fromRGB(0, 100, 255),
         HoverColor = Color3.fromRGB(35, 35, 60),
         BorderColor = Color3.fromRGB(50, 50, 80),
+        ShadowColor = Color3.fromRGB(0, 0, 10),
+        GradientColor1 = Color3.fromRGB(25, 25, 50),
+        GradientColor2 = Color3.fromRGB(15, 15, 30),
         CornerRadius = UDim.new(0, 8)
     },
     Green = {
@@ -95,6 +105,9 @@ ModernUI.Themes = {
         AccentColor = Color3.fromRGB(100, 200, 100),
         HoverColor = Color3.fromRGB(40, 50, 40),
         BorderColor = Color3.fromRGB(60, 70, 60),
+        ShadowColor = Color3.fromRGB(0, 10, 0),
+        GradientColor1 = Color3.fromRGB(30, 40, 30),
+        GradientColor2 = Color3.fromRGB(20, 25, 20),
         CornerRadius = UDim.new(0, 8)
     }
 }
@@ -110,7 +123,7 @@ function ModernUI:CreateLib(title, width, height, theme)
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "ModernUI"
     ScreenGui.Parent = game.CoreGui
-    ScreenGui.ResetOnSpawn = false
+    ScreenGui.ResetOnSpawn = false  -- Garante que a GUI não suma ao morrer/respawn
 
     local MainFrame = Instance.new("Frame")
     MainFrame.Size = UDim2.new(0, width or 600, 0, height or 400)
@@ -123,6 +136,13 @@ function ModernUI:CreateLib(title, width, height, theme)
 
     local UICorner = Instance.new("UICorner", MainFrame)
     UICorner.CornerRadius = theme.CornerRadius
+
+    -- Adiciona sombra para um look mais moderno
+    local Shadow = Instance.new("UIStroke", MainFrame)
+    Shadow.Color = theme.ShadowColor
+    Shadow.Transparency = 0.5
+    Shadow.Thickness = 2
+    Shadow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
     -- Animação de fade in para a UI principal
     createTween(MainFrame, {BackgroundTransparency = 0}, 0.5, Enum.EasingStyle.Sine)
@@ -139,6 +159,10 @@ function ModernUI:CreateLib(title, width, height, theme)
 
     local TitleCorner = Instance.new("UICorner", TitleBar)
     TitleCorner.CornerRadius = theme.CornerRadius
+
+    -- Gradiente no TitleBar para modernidade
+    local TitleGradient = Instance.new("UIGradient", TitleBar)
+    TitleGradient.Color = ColorSequence.new(theme.GradientColor1, theme.GradientColor2)
 
     makeDraggable(MainFrame, TitleBar)
 
@@ -171,8 +195,12 @@ function ModernUI:CreateLib(title, width, height, theme)
         Button.Font = Enum.Font.Gotham
         Button.TextSize = 14
         Button.Parent = Tabs
-        Button.BorderColor3 = theme.BorderColor
-        Button.BorderSizePixel = 1
+        Button.BorderSizePixel = 0
+
+        local ButtonStroke = Instance.new("UIStroke", Button)
+        ButtonStroke.Color = theme.BorderColor
+        ButtonStroke.Thickness = 1
+        ButtonStroke.Transparency = 0.8
 
         local ButtonCorner = Instance.new("UICorner", Button)
         ButtonCorner.CornerRadius = theme.CornerRadius
@@ -219,9 +247,13 @@ function ModernUI:CreateLib(title, width, height, theme)
             SectionFrame.Size = UDim2.new(1, -10, 0, 0)  -- Altura auto
             SectionFrame.BackgroundColor3 = theme.Background
             SectionFrame.Parent = Page
-            SectionFrame.BorderColor3 = theme.BorderColor
-            SectionFrame.BorderSizePixel = 1
+            SectionFrame.BorderSizePixel = 0
             SectionFrame.AutomaticSize = Enum.AutomaticSize.Y
+
+            local SectionStroke = Instance.new("UIStroke", SectionFrame)
+            SectionStroke.Color = theme.BorderColor
+            SectionStroke.Thickness = 1
+            SectionStroke.Transparency = 0.8
 
             local SectionCorner = Instance.new("UICorner", SectionFrame)
             SectionCorner.CornerRadius = theme.CornerRadius
@@ -270,11 +302,19 @@ function ModernUI:CreateLib(title, width, height, theme)
                 btn.Font = Enum.Font.Gotham
                 btn.TextSize = 13
                 btn.Parent = SectionFrame
-                btn.BorderColor3 = theme.BorderColor
-                btn.BorderSizePixel = 1
+                btn.BorderSizePixel = 0
+
+                local BtnStroke = Instance.new("UIStroke", btn)
+                BtnStroke.Color = theme.BorderColor
+                BtnStroke.Thickness = 1
+                BtnStroke.Transparency = 0.8
 
                 local BtnCorner = Instance.new("UICorner", btn)
                 BtnCorner.CornerRadius = theme.CornerRadius
+
+                -- Gradiente no botão
+                local BtnGradient = Instance.new("UIGradient", btn)
+                BtnGradient.Color = ColorSequence.new(theme.GradientColor1, theme.GradientColor2)
 
                 btn.MouseButton1Click:Connect(function()
                     createTween(btn, {BackgroundColor3 = theme.AccentColor}, 0.2)
@@ -304,8 +344,12 @@ function ModernUI:CreateLib(title, width, height, theme)
                 toggle.Font = Enum.Font.Gotham
                 toggle.TextSize = 13
                 toggle.Parent = SectionFrame
-                toggle.BorderColor3 = theme.BorderColor
-                toggle.BorderSizePixel = 1
+                toggle.BorderSizePixel = 0
+
+                local ToggleStroke = Instance.new("UIStroke", toggle)
+                ToggleStroke.Color = theme.BorderColor
+                ToggleStroke.Thickness = 1
+                ToggleStroke.Transparency = 0.8
 
                 local ToggleCorner = Instance.new("UICorner", toggle)
                 ToggleCorner.CornerRadius = theme.CornerRadius
@@ -333,7 +377,7 @@ function ModernUI:CreateLib(title, width, height, theme)
                 return toggle
             end
 
-            -- Slider
+            -- Slider (compatível com mobile)
             function Elements:NewSlider(text, info, min, max, default, callback)
                 local sliderFrame = Instance.new("Frame")
                 sliderFrame.Size = UDim2.new(1, 0, 0, 40)
@@ -353,9 +397,13 @@ function ModernUI:CreateLib(title, width, height, theme)
                 sliderBar.Size = UDim2.new(1, 0, 0, 6)
                 sliderBar.Position = UDim2.new(0, 0, 0, 25)
                 sliderBar.BackgroundColor3 = theme.ElementColor
-                sliderBar.BorderColor3 = theme.BorderColor
-                sliderBar.BorderSizePixel = 1
+                sliderBar.BorderSizePixel = 0
                 sliderBar.Parent = sliderFrame
+
+                local SliderBarStroke = Instance.new("UIStroke", sliderBar)
+                SliderBarStroke.Color = theme.BorderColor
+                SliderBarStroke.Thickness = 1
+                SliderBarStroke.Transparency = 0.8
 
                 local sliderBarCorner = Instance.new("UICorner", sliderBar)
                 sliderBarCorner.CornerRadius = UDim.new(0, 3)
@@ -381,20 +429,20 @@ function ModernUI:CreateLib(title, width, height, theme)
                 end
 
                 sliderBar.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                         dragging = true
                         updateValue(input)
                     end
                 end)
 
                 sliderBar.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
                         dragging = false
                     end
                 end)
 
                 UserInputService.InputChanged:Connect(function(input)
-                    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
                         updateValue(input)
                     end
                 end)
@@ -416,8 +464,12 @@ function ModernUI:CreateLib(title, width, height, theme)
                 box.Font = Enum.Font.Gotham
                 box.TextSize = 13
                 box.Parent = SectionFrame
-                box.BorderColor3 = theme.BorderColor
-                box.BorderSizePixel = 1
+                box.BorderSizePixel = 0
+
+                local BoxStroke = Instance.new("UIStroke", box)
+                BoxStroke.Color = theme.BorderColor
+                BoxStroke.Thickness = 1
+                BoxStroke.Transparency = 0.8
 
                 local BoxCorner = Instance.new("UICorner", box)
                 BoxCorner.CornerRadius = theme.CornerRadius
@@ -444,8 +496,12 @@ function ModernUI:CreateLib(title, width, height, theme)
                 dropdown.Font = Enum.Font.Gotham
                 dropdown.TextSize = 13
                 dropdown.Parent = SectionFrame
-                dropdown.BorderColor3 = theme.BorderColor
-                dropdown.BorderSizePixel = 1
+                dropdown.BorderSizePixel = 0
+
+                local DropdownStroke = Instance.new("UIStroke", dropdown)
+                DropdownStroke.Color = theme.BorderColor
+                DropdownStroke.Thickness = 1
+                DropdownStroke.Transparency = 0.8
 
                 local DropdownCorner = Instance.new("UICorner", dropdown)
                 DropdownCorner.CornerRadius = theme.CornerRadius
@@ -454,11 +510,15 @@ function ModernUI:CreateLib(title, width, height, theme)
                 dropFrame.Size = UDim2.new(1, 0, 0, 0)
                 dropFrame.Position = UDim2.new(0, 0, 1, 0)
                 dropFrame.BackgroundColor3 = theme.Background
-                dropFrame.BorderColor3 = theme.BorderColor
-                dropFrame.BorderSizePixel = 1
+                dropFrame.BorderSizePixel = 0
                 dropFrame.Visible = false
                 dropFrame.ClipsDescendants = true
                 dropFrame.Parent = dropdown
+
+                local DropStroke = Instance.new("UIStroke", dropFrame)
+                DropStroke.Color = theme.BorderColor
+                DropStroke.Thickness = 1
+                DropStroke.Transparency = 0.8
 
                 local DropCorner = Instance.new("UICorner", dropFrame)
                 DropCorner.CornerRadius = theme.CornerRadius
@@ -532,8 +592,10 @@ function ModernUI:CreateLib(title, width, height, theme)
                 end
 
                 UserInputService.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 and not dropdown:IsMouseOver() and not dropFrame:IsMouseOver() then
-                        closeDropdown()
+                    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+                        if not (dropdown:IsMouseOver() or dropFrame:IsMouseOver()) then
+                            closeDropdown()
+                        end
                     end
                 end)
 
