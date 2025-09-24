@@ -1,6 +1,3 @@
--- Modern UI Library by ChatGPT
--- Inspirado na KavoUI, mas refeito do zero e mais moderno
-
 local ModernUI = {}
 ModernUI.__index = ModernUI
 
@@ -42,13 +39,29 @@ local function makeDraggable(frame, dragHandle)
     end)
 end
 
--- Tema padrão
+-- Função para criar animação
+local function createTween(instance, properties, duration, easingStyle, easingDirection)
+    local tweenInfo = TweenInfo.new(
+        duration or 0.2,
+        easingStyle or Enum.EasingStyle.Quad,
+        easingDirection or Enum.EasingDirection.Out
+    )
+    local tween = TweenService:Create(instance, tweenInfo, properties)
+    tween:Play()
+    return tween
+end
+
+-- Tema padrão atualizado
 ModernUI.Theme = {
-    SchemeColor = Color3.fromRGB(0,255,255),
-    Background = Color3.fromRGB(20,20,20),
-    Header = Color3.fromRGB(30,30,30),
-    TextColor = Color3.fromRGB(255,255,255),
-    ElementColor = Color3.fromRGB(25,25,25)
+    SchemeColor = Color3.fromRGB(0, 255, 255),
+    Background = Color3.fromRGB(20, 20, 20),
+    Header = Color3.fromRGB(30, 30, 30),
+    TextColor = Color3.fromRGB(255, 255, 255),
+    ElementColor = Color3.fromRGB(25, 25, 25),
+    AccentColor = Color3.fromRGB(0, 200, 200),
+    HoverColor = Color3.fromRGB(40, 40, 40),
+    BorderColor = Color3.fromRGB(50, 50, 50),
+    CornerRadius = UDim.new(0, 8)
 }
 
 -- Criar biblioteca
@@ -58,6 +71,7 @@ function ModernUI:CreateLib(title, theme)
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "ModernUI"
     ScreenGui.Parent = game.CoreGui
+    ScreenGui.ResetOnSpawn = false
 
     local MainFrame = Instance.new("Frame")
     MainFrame.Size = UDim2.new(0, 600, 0, 400)
@@ -65,9 +79,10 @@ function ModernUI:CreateLib(title, theme)
     MainFrame.BackgroundColor3 = theme.Background
     MainFrame.BorderSizePixel = 0
     MainFrame.Parent = ScreenGui
+    MainFrame.ClipsDescendants = true
 
     local UICorner = Instance.new("UICorner", MainFrame)
-    UICorner.CornerRadius = UDim.new(0, 12)
+    UICorner.CornerRadius = theme.CornerRadius
 
     local TitleBar = Instance.new("TextLabel")
     TitleBar.Size = UDim2.new(1, 0, 0, 40)
@@ -77,59 +92,95 @@ function ModernUI:CreateLib(title, theme)
     TitleBar.Font = Enum.Font.GothamBold
     TitleBar.TextSize = 18
     TitleBar.Parent = MainFrame
+    TitleBar.BorderSizePixel = 0
+
+    local TitleCorner = Instance.new("UICorner", TitleBar)
+    TitleCorner.CornerRadius = theme.CornerRadius
 
     makeDraggable(MainFrame, TitleBar)
 
     local Tabs = Instance.new("Frame", MainFrame)
     Tabs.Size = UDim2.new(0, 120, 1, -40)
-    Tabs.Position = UDim2.new(0,0,0,40)
+    Tabs.Position = UDim2.new(0, 0, 0, 40)
     Tabs.BackgroundColor3 = theme.ElementColor
+    Tabs.BorderSizePixel = 0
+
+    local TabsCorner = Instance.new("UICorner", Tabs)
+    TabsCorner.CornerRadius = theme.CornerRadius
+
+    local TabsList = Instance.new("UIListLayout", Tabs)
+    TabsList.Padding = UDim.new(0, 4)
+    TabsList.SortOrder = Enum.SortOrder.LayoutOrder
 
     local Container = Instance.new("Frame", MainFrame)
     Container.Size = UDim2.new(1, -120, 1, -40)
-    Container.Position = UDim2.new(0,120,0,40)
+    Container.Position = UDim2.new(0, 120, 0, 40)
     Container.BackgroundTransparency = 1
 
     local TabHolder = {}
     function TabHolder:NewTab(tabName)
         local Button = Instance.new("TextButton")
-        Button.Size = UDim2.new(1,0,0,30)
+        Button.Size = UDim2.new(1, -8, 0, 30)
+        Button.Position = UDim2.new(0, 4, 0, 0)
         Button.Text = tabName
         Button.BackgroundColor3 = theme.ElementColor
         Button.TextColor3 = theme.TextColor
         Button.Font = Enum.Font.Gotham
         Button.TextSize = 14
         Button.Parent = Tabs
+        Button.BorderColor3 = theme.BorderColor
+        Button.BorderSizePixel = 1
+
+        local ButtonCorner = Instance.new("UICorner", Button)
+        ButtonCorner.CornerRadius = theme.CornerRadius
 
         local Page = Instance.new("ScrollingFrame", Container)
-        Page.Size = UDim2.new(1,0,1,0)
-        Page.CanvasSize = UDim2.new(0,0,0,0)
+        Page.Size = UDim2.new(1, 0, 1, 0)
+        Page.CanvasSize = UDim2.new(0, 0, 0, 0)
         Page.ScrollBarThickness = 6
         Page.Visible = false
+        Page.BackgroundTransparency = 1
+        Page.ScrollBarImageColor3 = theme.SchemeColor
 
         local UIList = Instance.new("UIListLayout", Page)
-        UIList.Padding = UDim.new(0,6)
+        UIList.Padding = UDim.new(0, 6)
         UIList.SortOrder = Enum.SortOrder.LayoutOrder
 
         Button.MouseButton1Click:Connect(function()
-            for _,v in pairs(Container:GetChildren()) do
+            for _, v in pairs(Container:GetChildren()) do
                 if v:IsA("ScrollingFrame") then
                     v.Visible = false
                 end
             end
             Page.Visible = true
+            createTween(Button, {BackgroundColor3 = theme.AccentColor}, 0.2)
+            wait(0.2)
+            createTween(Button, {BackgroundColor3 = theme.ElementColor}, 0.2)
+        end)
+
+        Button.MouseEnter:Connect(function()
+            createTween(Button, {BackgroundColor3 = theme.HoverColor}, 0.15)
+        end)
+
+        Button.MouseLeave:Connect(function()
+            createTween(Button, {BackgroundColor3 = theme.ElementColor}, 0.15)
         end)
 
         local SectionHolder = {}
         function SectionHolder:NewSection(name)
             local SectionFrame = Instance.new("Frame")
-            SectionFrame.Size = UDim2.new(1,-10,0,40)
+            SectionFrame.Size = UDim2.new(1, -10, 0, 40)
             SectionFrame.BackgroundColor3 = theme.Background
             SectionFrame.Parent = Page
+            SectionFrame.BorderColor3 = theme.BorderColor
+            SectionFrame.BorderSizePixel = 1
+
+            local SectionCorner = Instance.new("UICorner", SectionFrame)
+            SectionCorner.CornerRadius = theme.CornerRadius
 
             local Label = Instance.new("TextLabel", SectionFrame)
             Label.Size = UDim2.new(1, -10, 0, 20)
-            Label.Position = UDim2.new(0,5,0,5)
+            Label.Position = UDim2.new(0, 5, 0, 5)
             Label.BackgroundTransparency = 1
             Label.Text = name
             Label.Font = Enum.Font.GothamBold
@@ -137,12 +188,11 @@ function ModernUI:CreateLib(title, theme)
             Label.TextColor3 = theme.SchemeColor
 
             local UIList2 = Instance.new("UIListLayout", SectionFrame)
-            UIList2.Padding = UDim.new(0,4)
+            UIList2.Padding = UDim.new(0, 4)
             UIList2.SortOrder = Enum.SortOrder.LayoutOrder
 
             local Elements = {}
 
-            -- Label
             function Elements:NewLabel(text)
                 local lbl = Instance.new("TextLabel")
                 lbl.Size = UDim2.new(1, -10, 0, 20)
@@ -155,7 +205,6 @@ function ModernUI:CreateLib(title, theme)
                 return lbl
             end
 
-            -- Button
             function Elements:NewButton(text, info, callback)
                 local btn = Instance.new("TextButton")
                 btn.Size = UDim2.new(1, -10, 0, 30)
@@ -165,11 +214,30 @@ function ModernUI:CreateLib(title, theme)
                 btn.Font = Enum.Font.Gotham
                 btn.TextSize = 13
                 btn.Parent = SectionFrame
-                btn.MouseButton1Click:Connect(callback)
+                btn.BorderColor3 = theme.BorderColor
+                btn.BorderSizePixel = 1
+
+                local BtnCorner = Instance.new("UICorner", btn)
+                BtnCorner.CornerRadius = theme.CornerRadius
+
+                btn.MouseButton1Click:Connect(function()
+                    createTween(btn, {BackgroundColor3 = theme.AccentColor}, 0.2)
+                    callback()
+                    wait(0.2)
+                    createTween(btn, {BackgroundColor3 = theme.ElementColor}, 0.2)
+                end)
+
+                btn.MouseEnter:Connect(function()
+                    createTween(btn, {BackgroundColor3 = theme.HoverColor}, 0.15)
+                end)
+
+                btn.MouseLeave:Connect(function()
+                    createTween(btn, {BackgroundColor3 = theme.ElementColor}, 0.15)
+                end)
+
                 return btn
             end
 
-            -- Toggle
             function Elements:NewToggle(text, info, callback)
                 local toggle = Instance.new("TextButton")
                 toggle.Size = UDim2.new(1, -10, 0, 30)
@@ -179,18 +247,31 @@ function ModernUI:CreateLib(title, theme)
                 toggle.Font = Enum.Font.Gotham
                 toggle.TextSize = 13
                 toggle.Parent = SectionFrame
+                toggle.BorderColor3 = theme.BorderColor
+                toggle.BorderSizePixel = 1
+
+                local ToggleCorner = Instance.new("UICorner", toggle)
+                ToggleCorner.CornerRadius = theme.CornerRadius
 
                 local state = false
                 toggle.MouseButton1Click:Connect(function()
                     state = not state
                     toggle.Text = text .. (state and " [ON]" or " [OFF]")
+                    createTween(toggle, {BackgroundColor3 = state and theme.SchemeColor or theme.ElementColor}, 0.2)
                     callback(state)
+                end)
+
+                toggle.MouseEnter:Connect(function()
+                    createTween(toggle, {BackgroundColor3 = state and theme.SchemeColor or theme.HoverColor}, 0.15)
+                end)
+
+                toggle.MouseLeave:Connect(function()
+                    createTween(toggle, {BackgroundColor3 = state and theme.SchemeColor or theme.ElementColor}, 0.15)
                 end)
 
                 return toggle
             end
 
-            -- Slider
             function Elements:NewSlider(text, info, max, min, callback)
                 local slider = Instance.new("TextButton")
                 slider.Size = UDim2.new(1, -10, 0, 30)
@@ -200,19 +281,34 @@ function ModernUI:CreateLib(title, theme)
                 slider.Font = Enum.Font.Gotham
                 slider.TextSize = 13
                 slider.Parent = SectionFrame
+                slider.BorderColor3 = theme.BorderColor
+                slider.BorderSizePixel = 1
+
+                local SliderCorner = Instance.new("UICorner", slider)
+                SliderCorner.CornerRadius = theme.CornerRadius
 
                 local value = min
                 slider.MouseButton1Click:Connect(function()
                     value = value + 1
                     if value > max then value = min end
                     slider.Text = text.." ("..value..")"
+                    createTween(slider, {BackgroundColor3 = theme.AccentColor}, 0.2)
                     callback(value)
+                    wait(0.2)
+                    createTween(slider, {BackgroundColor3 = theme.ElementColor}, 0.2)
+                end)
+
+                slider.MouseEnter:Connect(function()
+                    createTween(slider, {BackgroundColor3 = theme.HoverColor}, 0.15)
+                end)
+
+                slider.MouseLeave:Connect(function()
+                    createTween(slider, {BackgroundColor3 = theme.ElementColor}, 0.15)
                 end)
 
                 return slider
             end
 
-            -- TextBox
             function Elements:NewTextBox(text, info, callback)
                 local box = Instance.new("TextBox")
                 box.Size = UDim2.new(1, -10, 0, 30)
@@ -222,8 +318,18 @@ function ModernUI:CreateLib(title, theme)
                 box.Font = Enum.Font.Gotham
                 box.TextSize = 13
                 box.Parent = SectionFrame
+                box.BorderColor3 = theme.BorderColor
+                box.BorderSizePixel = 1
+
+                local BoxCorner = Instance.new("UICorner", box)
+                BoxCorner.CornerRadius = theme.CornerRadius
+
+                box.Focused:Connect(function()
+                    createTween(box, {BackgroundColor3 = theme.HoverColor}, 0.15)
+                end)
 
                 box.FocusLost:Connect(function()
+                    createTween(box, {BackgroundColor3 = theme.ElementColor}, 0.15)
                     callback(box.Text)
                 end)
 
