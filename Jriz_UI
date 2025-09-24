@@ -214,7 +214,6 @@ function ModernUI:CreateLib(title, width, height, theme)
         Page.Visible = false  
         Page.BackgroundTransparency = 1  
         Page.ScrollBarImageColor3 = theme.SchemeColor  
-        Page.Transparency = 1  
 
         local UIList = Instance.new("UIListLayout", Page)  
         UIList.Padding = UDim.new(0, 6)  
@@ -228,7 +227,6 @@ function ModernUI:CreateLib(title, width, height, theme)
             for _, v in pairs(Container:GetChildren()) do  
                 if v:IsA("ScrollingFrame") then  
                     v.Visible = false  
-                    v.Transparency = 1  
                 end  
             end  
             for _, v in pairs(Tabs:GetChildren()) do  
@@ -237,7 +235,6 @@ function ModernUI:CreateLib(title, width, height, theme)
                 end  
             end  
             Page.Visible = true  
-            createTween(Page, {Transparency = 0}, 0.3, Enum.EasingStyle.Sine)  
             createTween(Button, {BackgroundColor3 = theme.SelectedColor}, 0.2)  
         end)  
 
@@ -261,8 +258,7 @@ function ModernUI:CreateLib(title, width, height, theme)
             SectionFrame.Parent = Page  
             SectionFrame.BorderSizePixel = 0  
             SectionFrame.AutomaticSize = Enum.AutomaticSize.Y  
-            SectionFrame.BackgroundTransparency = 0 -- Começa opaco
-            -- createTween(SectionFrame, {Transparency = 0}, 0.4, Enum.EasingStyle.Sine) removido para teste
+            SectionFrame.BackgroundTransparency = 0  
 
             local SectionStroke = Instance.new("UIStroke", SectionFrame)  
             SectionStroke.Color = theme.BorderColor  
@@ -303,8 +299,6 @@ function ModernUI:CreateLib(title, width, height, theme)
                 lbl.TextSize = 13  
                 lbl.TextColor3 = theme.TextColor  
                 lbl.Parent = SectionFrame  
-                lbl.Transparency = 1  
-                createTween(lbl, {Transparency = 0}, 0.3)  
                 return lbl  
             end  
 
@@ -319,8 +313,6 @@ function ModernUI:CreateLib(title, width, height, theme)
                 btn.TextSize = 13  
                 btn.Parent = SectionFrame  
                 btn.BorderSizePixel = 0  
-                btn.Transparency = 1  
-                createTween(btn, {Transparency = 0}, 0.3)  
 
                 local BtnStroke = Instance.new("UIStroke", btn)  
                 BtnStroke.Color = theme.BorderColor  
@@ -362,8 +354,6 @@ function ModernUI:CreateLib(title, width, height, theme)
                 toggle.TextSize = 13  
                 toggle.Parent = SectionFrame  
                 toggle.BorderSizePixel = 0  
-                toggle.Transparency = 1  
-                createTween(toggle, {Transparency = 0}, 0.3)  
 
                 local ToggleStroke = Instance.new("UIStroke", toggle)  
                 ToggleStroke.Color = theme.BorderColor  
@@ -402,8 +392,6 @@ function ModernUI:CreateLib(title, width, height, theme)
                 sliderFrame.Size = UDim2.new(1, 0, 0, 40)  
                 sliderFrame.BackgroundTransparency = 1  
                 sliderFrame.Parent = SectionFrame  
-                sliderFrame.BackgroundTransparency = 0 -- Começa opaco
-                -- createTween(sliderFrame, {Transparency = 0}, 0.3) removido para teste
 
                 local sliderLabel = Instance.new("TextLabel")  
                 sliderLabel.Size = UDim2.new(1, 0, 0, 20)  
@@ -417,10 +405,10 @@ function ModernUI:CreateLib(title, width, height, theme)
                 local sliderBar = Instance.new("Frame")  
                 sliderBar.Size = UDim2.new(1, 0, 0, 6)  
                 sliderBar.Position = UDim2.new(0, 0, 0, 25)  
-                sliderBar.BackgroundColor3 = theme.ElementColor  
+                sliderBar.BackgroundColor3 = Color3.new(0, 0, 0) -- Fundo invisível
+                sliderBar.BackgroundTransparency = 1  
                 sliderBar.BorderSizePixel = 0  
                 sliderBar.Parent = sliderFrame  
-                sliderBar.BackgroundTransparency = 0 -- Garante que a cor seja visível
 
                 local SliderBarStroke = Instance.new("UIStroke", sliderBar)  
                 SliderBarStroke.Color = theme.BorderColor  
@@ -435,7 +423,6 @@ function ModernUI:CreateLib(title, width, height, theme)
                 fill.BackgroundColor3 = theme.SchemeColor  
                 fill.BorderSizePixel = 0  
                 fill.Parent = sliderBar  
-                fill.BackgroundTransparency = 0 -- Garante que o preenchimento seja visível
 
                 local fillCorner = Instance.new("UICorner", fill)  
                 fillCorner.CornerRadius = UDim.new(0, 3)  
@@ -487,8 +474,6 @@ function ModernUI:CreateLib(title, width, height, theme)
                 box.TextSize = 13  
                 box.Parent = SectionFrame  
                 box.BorderSizePixel = 0  
-                box.Transparency = 1  
-                createTween(box, {Transparency = 0}, 0.3)  
 
                 local BoxStroke = Instance.new("UIStroke", box)  
                 BoxStroke.Color = theme.BorderColor  
@@ -521,8 +506,6 @@ function ModernUI:CreateLib(title, width, height, theme)
                 dropdown.TextSize = 13  
                 dropdown.Parent = SectionFrame  
                 dropdown.BorderSizePixel = 0  
-                dropdown.Transparency = 1  
-                createTween(dropdown, {Transparency = 0}, 0.3)  
 
                 local DropdownStroke = Instance.new("UIStroke", dropdown)  
                 DropdownStroke.Color = theme.BorderColor  
@@ -540,7 +523,6 @@ function ModernUI:CreateLib(title, width, height, theme)
                 dropFrame.Visible = false  
                 dropFrame.ClipsDescendants = true  
                 dropFrame.Parent = dropdown  
-                dropFrame.Transparency = 1  
 
                 local DropStroke = Instance.new("UIStroke", dropFrame)  
                 DropStroke.Color = theme.BorderColor  
@@ -566,8 +548,6 @@ function ModernUI:CreateLib(title, width, height, theme)
                     optBtn.TextSize = 12  
                     optBtn.Parent = dropFrame  
                     optBtn.BorderSizePixel = 0  
-                    optBtn.Transparency = 1  
-                    createTween(optBtn, {Transparency = 0}, 0.3)  
 
                     local OptCorner = Instance.new("UICorner", optBtn)  
                     OptCorner.CornerRadius = theme.CornerRadius  
@@ -576,7 +556,7 @@ function ModernUI:CreateLib(title, width, height, theme)
                         dropdown.Text = text .. " (" .. option .. ")"  
                         callback(option)  
                         open = false  
-                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, 0), Transparency = 1}, 0.2, Enum.EasingStyle.Sine)  
+                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, Enum.EasingStyle.Sine)  
                         wait(0.2)  
                         dropFrame.Visible = false  
                     end)  
@@ -594,9 +574,9 @@ function ModernUI:CreateLib(title, width, height, theme)
                     open = not open  
                     if open then  
                         dropFrame.Visible = true  
-                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, #options * 25 + (#options - 1) * 2), Transparency = 0}, 0.3, Enum.EasingStyle.Sine)  
+                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, #options * 25 + (#options - 1) * 2)}, 0.3, Enum.EasingStyle.Sine)  
                     else  
-                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, 0), Transparency = 1}, 0.2, Enum.EasingStyle.Sine)  
+                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, Enum.EasingStyle.Sine)  
                         wait(0.2)  
                         dropFrame.Visible = false  
                     end  
@@ -613,7 +593,7 @@ function ModernUI:CreateLib(title, width, height, theme)
                 local function closeDropdown()  
                     if open then  
                         open = false  
-                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, 0), Transparency = 1}, 0.2, Enum.EasingStyle.Sine)  
+                        createTween(dropFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, Enum.EasingStyle.Sine)  
                         wait(0.2)  
                         dropFrame.Visible = false  
                     end  
